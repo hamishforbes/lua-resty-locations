@@ -425,3 +425,39 @@ GET /a
 --- response_body
 ^/location_a regex match
 ^/location_a/1 regex match
+
+=== TEST 14: Invalid modifiers are rejected
+--- http_config eval
+"$::HttpConfig"
+. q{
+
+}
+--- config
+    location /a {
+        content_by_lua_block {
+            local locations = require("resty.locations")
+            local my_locs, err = locations:new()
+
+            local ok, err = my_locs:set("/", "val", "asdf")
+            ngx.say(err)
+            local ok, err = my_locs:set("/", "val", 123)
+            ngx.say(err)
+            local ok, err = my_locs:set("/", "val", {} )
+            ngx.say(err)
+            local ok, err = my_locs:set("/", "val", function() return "=" end )
+            ngx.say(err)
+            local ok, err = my_locs:set("/", "val", "!=")
+            ngx.say(err)
+
+        }
+    }
+--- request
+GET /a
+--- no_error_log
+[error]
+--- response_body
+invalid modifier
+invalid modifier
+invalid modifier
+invalid modifier
+invalid modifier

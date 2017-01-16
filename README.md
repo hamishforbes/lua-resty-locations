@@ -67,12 +67,13 @@ Creates a new instance of resty-locations with an optional initial size
 ### set
 `syntax: ok, err = my_locations:set(key, value, modifier?)`
 
-Adds a new key with associated value and modifier, default is `=` for prefix match.   
+Adds a new key with associated value and modifier, default is an empty string for prefix match.   
 Keys must be strings.   
 Returns false and an error message on failure.
 
 Modifiers are as the nginx location feature.
- * `=` - Prefix match
+ * `` (empty string) - Prefix match
+ * `=` - Exact match
  * `~` - Regex match
  * `~*` - Case insensitive regex match
  * `^~` - Prefix match, skip regexes

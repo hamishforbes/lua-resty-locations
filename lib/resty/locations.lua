@@ -53,6 +53,10 @@ function _M.set(self, key, val, mod)
     if not key or type(key) ~= "string" or #key == 0 then
         return nil, "invalid location, must be a string"
     end
+    if mod and type(mod) ~= "string" then
+        return nil, "invalid modifier"
+    end
+
     if not mod then mod = "" end
 
     if mod == "=" then
