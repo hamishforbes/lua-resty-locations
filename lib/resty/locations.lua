@@ -56,6 +56,9 @@ function _M.set(self, key, val, mod)
     if not mod then mod = "" end
 
     if mod == "=" then
+        if self.exact_map[key] then
+            return false, "location exists"
+        end
         if DEBUG then ngx_log(ngx_DEBUG, "Adding exact match: ", key) end
         self.exact_map[key] = val
         return true
