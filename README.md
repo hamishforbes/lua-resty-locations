@@ -1,4 +1,4 @@
-#lua-resty-locations
+# lua-resty-locations
 
 Lua library implementing nginx style 'location' uri matching.
 
@@ -11,7 +11,7 @@ Supports longest prefix matching, regex matching, case insensitive regex matchin
 * Regexes are checked *in order*
 * If no regex match longest prefix is returned
 
-#Overview
+# Overview
 
 ```
 lua_package_path "/path/to/lua-resty-locations/lib/?.lua;;";
