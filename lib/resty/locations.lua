@@ -1,11 +1,12 @@
-local str_byte = string.byte
-local str_char = string.char
-local tbl_insert = table.insert
+local str_byte    = string.byte
+local str_sub     = string.sub
+local str_char    = string.char
+local tbl_insert  = table.insert
 local ngx_re_find = ngx.re.find
-local ngx_log = ngx.log
-local ngx_DEBUG = ngx.DEBUG
-local ngx_ERR = ngx.ERR
-local ngx_INFO = ngx.INFO
+local ngx_log     = ngx.log
+local ngx_DEBUG   = ngx.DEBUG
+local ngx_ERR     = ngx.ERR
+local ngx_INFO    = ngx.INFO
 
 
 local ok, tab_new = pcall(require, "table.new")
@@ -39,7 +40,11 @@ end
 
 local function trie_insert(trie, val, len, pos)
     pos = pos or 0
-    if pos >= len then return end
+    if pos >= len then
+        -- Flag this point in the tree as a complete key
+        trie["fin"] = true
+        return
+    end
     pos = pos + 1
     if DEBUG then ngx_log(ngx_DEBUG, "Insert: '", val, "'") end
 
@@ -92,15 +97,21 @@ function _M.set(self, key, val, mod)
 end
 
 
-local function trie_walk(trie, key, ret, pos)
+local function trie_walk(trie, key, ret, pos, fin)
     pos = pos or 0
     pos = pos + 1
     local b = str_byte(key, pos)
 
     if b and trie[b] then
-        if DEBUG then ngx_log(ngx_DEBUG, "found ", b) end
+        if DEBUG then ngx_log(ngx_DEBUG, "found ", b, " ", trie[b]["fin"]) end
         ret[pos] = b
-        trie_walk(trie[b], key, ret, pos)
+        if trie[b]["fin"] then
+            -- This point is a complete key in the tree
+            fin = pos
+        end
+        return trie_walk(trie[b], key, ret, pos, fin)
+    else
+        return fin
     end
 end
 
@@ -119,9 +130,14 @@ function _M.lookup(self, key)
     -- Search the prefix trie
     if DEBUG then ngx_log(ngx_DEBUG, "Searching: ", key) end
     local match = {}
-    trie_walk(self.trie, key, match)
+    local fin = trie_walk(self.trie, key, match)
+    if DEBUG then ngx_log(ngx_DEBUG, "fin: ", fin) end
 
-    match = str_char(unpack(match))
+    if fin then
+        match = str_sub(str_char(unpack(match)), 1, fin)
+    else
+        match = nil
+    end
 
     local prefix_match
     local map = self.map
