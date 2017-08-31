@@ -461,3 +461,59 @@ invalid modifier
 invalid modifier
 invalid modifier
 invalid modifier
+
+=== TEST 15: Matches between prefixes work
+--- http_config eval
+"$::HttpConfig"
+. q{
+
+}
+--- config
+    location /a {
+        content_by_lua_block {
+            local locations = require("resty.locations")
+            locations._debug(true)
+            local my_locs, err = locations:new()
+
+            local ok, err = my_locs:set("/location_a", "/location_a prefix match")
+            local ok, err = my_locs:set("/location_a/123", "/location_a/123 prefix match")
+
+            local val = my_locs:lookup("/location_a/1")
+            ngx.say(val)
+
+        }
+    }
+--- request
+GET /a
+--- no_error_log
+[error]
+--- response_body
+/location_a prefix match
+
+=== TEST 16: Zero length match
+--- http_config eval
+"$::HttpConfig"
+. q{
+
+}
+--- config
+    location /a {
+        content_by_lua_block {
+            local locations = require("resty.locations")
+            locations._debug(true)
+            local my_locs, err = locations:new()
+
+            local ok, err = my_locs:set("/location_a", "/location_a prefix match")
+            local ok, err = my_locs:set("/location_a/123", "/location_a/123 prefix match")
+
+            local val = my_locs:lookup("asdfasd")
+            ngx.say(val)
+
+        }
+    }
+--- request
+GET /a
+--- no_error_log
+[error]
+--- response_body
+nil
